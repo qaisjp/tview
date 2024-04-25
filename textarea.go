@@ -89,6 +89,19 @@ type textAreaUndoItem struct {
 	continuation                  bool   // If true, this item is a continuation of the previous undo item. It is handled together with all other undo items in the same continuation sequence.
 }
 
+type cursorOrSelectionStart struct {
+	// The row and column in screen space but relative to the start of the
+	// text which may be outside the text area's box. The column value may
+	// be larger than where the cursor actually is if the line the cursor
+	// is on is shorter. The actualColumn is the position as it is seen on
+	// screen. These three values may not be determined yet, in which case
+	// the row is negative.
+	row, column, actualColumn int
+
+	// The textAreaSpan position with state for the actual next character.
+	pos [3]int
+}
+
 // TextArea implements a simple text editor for multi-line text. Multi-color
 // text is not supported. Word-wrapping is enabled by default but can be turned
 // off or be changed to character-wrapping.
@@ -284,18 +297,8 @@ type TextArea struct {
 	// be placed. The selection start is the same as the cursor as long as there
 	// is no selection. When there is one, the selection is between
 	// selectionStart and cursor.
-	cursor, selectionStart struct {
-		// The row and column in screen space but relative to the start of the
-		// text which may be outside the text area's box. The column value may
-		// be larger than where the cursor actually is if the line the cursor
-		// is on is shorter. The actualColumn is the position as it is seen on
-		// screen. These three values may not be determined yet, in which case
-		// the row is negative.
-		row, column, actualColumn int
-
-		// The textAreaSpan position with state for the actual next character.
-		pos [3]int
-	}
+	cursor         cursorOrSelectionStart
+	selectionStart cursorOrSelectionStart
 
 	// The minimum width of text (if available) to be shown left of the cursor.
 	minCursorPrefix int
